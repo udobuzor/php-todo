@@ -1,6 +1,14 @@
 pipeline {
     agent {label 'slave'}
 
+    parameters {
+        choice(
+            name: 'environment',
+            choices: ['dev', 'staging', 'uat'],
+            description: 'Select environment to deploy to'
+        )
+    }
+
     stages {
         stage("Initial cleanup") {
             steps {
@@ -9,14 +17,12 @@ pipeline {
                 }
             }
         }
-
         stage('Checkout SCM') {
             steps {
                 git branch: 'main',
                 url: 'https://github.com/udobuzor/php-todo.git'
             }
         }
-
         stage('Prepare Dependencies') {
             steps {
                 sh 'mv .env.sample .env'
@@ -26,39 +32,39 @@ pipeline {
                 sh 'php artisan key:generate'
             }
         }
-
         stage('Execute Unit Tests') {
             steps {
                 sh './vendor/bin/phpunit'
             }
         }
-
         stage('Code Analysis') {
             steps {
                 sh 'phploc app/ --log-csv build/logs/phploc.csv'
             }
         }
-
         stage('SonarQube Quality Gate') {
             environment {
                 scannerHome = tool 'SonarQubeScanner'
             }
             steps {
                 withSonarQubeEnv('sonarqube') {
-                    sh "${scannerHome}/bin/sonar-scanner"    
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=php-todo \
+                        -Dsonar.sources=app/ \
+                        -Dsonar.php.exclusions=**/vendor/**
+                    """
                 }
                 timeout(time: 1, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
-        }        
-
+        }
         stage('Package Artifact') {
             steps {
                 sh 'zip -qr php-todo.zip ${WORKSPACE}/*'
             }
         }
-
         stage('Upload Artifact to Artifactory') {
             steps {
                 script {
@@ -74,17 +80,14 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy to Dev Environment') {
+        stage('Deploy to Environment') {
             steps {
                 build job: 'udo-ansible-config-mgt/main',
                 parameters: [[$class: 'StringParameterValue',
-                name: 'env', value: 'dev']],
+                name: 'inventory', value: "${params.environment}"]],
                 propagate: false,
                 wait: true
             }
         }
     }
 }
-
-
