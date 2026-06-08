@@ -70,7 +70,7 @@ pipeline {
                     def uploadSpec = """{
                         "files": [{
                             "pattern": "php-todo.zip",
-                            "target": "<your-artifactory-repo>/php-todo",
+                            "target": "php-todo/",
                             "props": "type=zip;status=ready"
                         }]
                     }"""
