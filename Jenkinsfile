@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent {label 'slave'}
 
     stages {
         stage("Initial cleanup") {
