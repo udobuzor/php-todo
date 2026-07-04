@@ -26,6 +26,7 @@ pipeline {
             steps {
                 script {
                     sh """
+                        docker network create tooling_app_network || true
                         docker run --network tooling_app_network -d --name test-${BUILD_NUMBER} -p 0:80 ${IMAGE_NAME}:${IMAGE_TAG}
                         sleep 5
                         CONTAINER_PORT=\$(docker port test-${BUILD_NUMBER} 80 | cut -d: -f2)
