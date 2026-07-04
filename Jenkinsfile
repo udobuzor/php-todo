@@ -1,5 +1,4 @@
 pipeline {
-<<<<<<< HEAD
     agent any
 
     environment {
@@ -62,7 +61,7 @@ pipeline {
                     sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
                     sh "docker system prune -f || true"
                 }
-=======
+
     agent {label 'slave'}
 
     parameters {
@@ -151,7 +150,6 @@ pipeline {
                 name: 'inventory', value: "${params.environment}"]],
                 propagate: false,
                 wait: true
->>>>>>> d9a52dc2711f4d608ac94dc572d170b18aad366d
             }
         }
     }
