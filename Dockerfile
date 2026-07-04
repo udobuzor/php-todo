@@ -5,6 +5,7 @@ RUN echo "deb http://archive.debian.org/debian buster main contrib non-free" > /
  && echo "deb http://archive.debian.org/debian-security buster/updates main contrib non-free" >> /etc/apt/sources.list \
  && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
 
+# System dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     libmcrypt-dev \
     libpng-dev \
@@ -34,8 +35,14 @@ WORKDIR /var/www/html
 # App source
 COPY . /var/www/html
 
+# Generate .env from sample (real deployments should mount/inject a proper .env instead)
+RUN cp .env.sample .env
+
 # Install PHP dependencies
 RUN composer install --no-interaction --optimize-autoloader
+
+# Generate a real Laravel application key
+RUN php artisan key:generate
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/html \
