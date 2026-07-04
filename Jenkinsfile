@@ -42,6 +42,10 @@ pipeline {
                         docker run --network tooling_app_network -d --name test-${BUILD_NUMBER} -p 0:80 ${IMAGE_NAME}:${IMAGE_TAG}
                         sleep 5
 
+                        echo "=== Running migrations ==="
+                        docker exec test-${BUILD_NUMBER} php artisan migrate --force
+                        echo "=== Migrations complete ==="
+
                         echo "=== Container logs for test-${BUILD_NUMBER} ==="
                         docker logs test-${BUILD_NUMBER} || true
                         echo "=== End container logs ==="
