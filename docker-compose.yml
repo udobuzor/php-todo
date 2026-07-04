@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  php-todo:
+    build: .
+    ports:
+      - "8090:80"
+    volumes:
+      - php_todo_storage:/var/www/html/storage
+    hostname: php-todo-app
+    links:
+      - db
+  db:
+    image: mariadb:10.4
+    restart: always
+    hostname: mysqlserverhost
+    environment:
+      MYSQL_DATABASE: homestead
+      MYSQL_USER: udobuzor
+      MYSQL_PASSWORD: udobuzor
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db_data:/var/lib/mysql
+volumes:
+  php_todo_storage:
+  db_data:
