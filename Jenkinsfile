@@ -34,7 +34,7 @@ pipeline {
                             -e MYSQL_USER=udobuzor \
                             -e MYSQL_PASSWORD=udobuzor \
                             -h mysqlserverhost \
-                            -d mysql:5.7
+                            -d mariadb:10.4
 
                         echo "Waiting for MySQL to be ready..."
                         sleep 20
@@ -82,7 +82,7 @@ pipeline {
             steps {
                 script {
                     sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
-                    sh "docker system prune -f || true"
+                    sh "docker system prune -af --volumes || true"
                 }
             }
         }
