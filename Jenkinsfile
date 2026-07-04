@@ -42,9 +42,18 @@ pipeline {
                         docker run --network tooling_app_network -d --name test-${BUILD_NUMBER} -p 0:80 ${IMAGE_NAME}:${IMAGE_TAG}
                         sleep 5
 
+                        echo "=== Container logs for test-${BUILD_NUMBER} ==="
+                        docker logs test-${BUILD_NUMBER} || true
+                        echo "=== End container logs ==="
+
                         CONTAINER_PORT=\$(docker port test-${BUILD_NUMBER} 80 | cut -d: -f2)
                         STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:\$CONTAINER_PORT)
                         echo "HTTP status: \$STATUS"
+
+                        echo "=== Full response body ==="
+                        curl -s http://localhost:\$CONTAINER_PORT || true
+                        echo "=== End response body ==="
+
                         if [ "\$STATUS" != "200" ]; then
                             echo "Test failed: expected 200, got \$STATUS"
                             exit 1
