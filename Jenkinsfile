@@ -27,8 +27,21 @@ pipeline {
                 script {
                     sh """
                         docker network create tooling_app_network || true
+
+                        docker run --network tooling_app_network --name test-mysql-${BUILD_NUMBER} \
+                            -e MYSQL_ROOT_PASSWORD=root \
+                            -e MYSQL_DATABASE=homestead \
+                            -e MYSQL_USER=udobuzor \
+                            -e MYSQL_PASSWORD=udobuzor \
+                            -h mysqlserverhost \
+                            -d mysql:5.7
+
+                        echo "Waiting for MySQL to be ready..."
+                        sleep 20
+
                         docker run --network tooling_app_network -d --name test-${BUILD_NUMBER} -p 0:80 ${IMAGE_NAME}:${IMAGE_TAG}
                         sleep 5
+
                         CONTAINER_PORT=\$(docker port test-${BUILD_NUMBER} 80 | cut -d: -f2)
                         STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:\$CONTAINER_PORT)
                         echo "HTTP status: \$STATUS"
@@ -41,8 +54,8 @@ pipeline {
             }
             post {
                 always {
-                    sh "docker stop test-${BUILD_NUMBER} || true"
-                    sh "docker rm test-${BUILD_NUMBER} || true"
+                    sh "docker stop test-${BUILD_NUMBER} test-mysql-${BUILD_NUMBER} || true"
+                    sh "docker rm test-${BUILD_NUMBER} test-mysql-${BUILD_NUMBER} || true"
                 }
             }
         }
